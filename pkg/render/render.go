@@ -1,13 +1,84 @@
 package render
 
 import (
-	"fmt"
+	"bytes"
 	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 )
 
+func RenderTemplate(w http.ResponseWriter, tmpl string) {
+	// create a template cache
+	tc, err := CreateTemplateCache()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(tc, "tc and err", err)
+
+	// get requested template from cache
+	t, ok := tc[tmpl]
+	if !ok {
+		log.Fatal(err)
+	}
+	log.Println(t, "t and ok", ok)
+
+	buf := new(bytes.Buffer)
+	log.Println("buffer", buf)
+
+	_ = t.Execute(buf, nil)
+
+	// render the template
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println("buf write err", err)
+
+}
+
+func CreateTemplateCache() (map[string]*template.Template, error) {
+	//myCache := make(map[string]*template.Template) // the same
+	myCache := map[string]*template.Template{}
+	//get all of the files named *.name.tmpl or *.html from ./templates
+	pages, err := filepath.Glob("./templates/*.html")
+	if err != nil {
+		log.Println(myCache, err, "in if statement")
+		return myCache, err
+	}
+
+	//range through all files ending with *.html
+	for _, page := range pages {
+		log.Println(page, "<- page")
+		name := filepath.Base(page)
+		log.Println("page name ->", name)
+		ts, err := template.New(name).ParseFiles(page)
+		if err != nil {
+			return myCache, err
+		}
+
+		matches, err := filepath.Glob("./templates/base.html") // layout file
+		if err != nil {
+			return myCache, err
+		}
+
+		if len(matches) > 0 {
+			ts, err = ts.ParseGlob("./templates/base.html") // layout file
+			if err != nil {
+				return myCache, err
+			}
+		}
+
+		myCache[name] = ts
+	}
+
+	return myCache, nil
+
+}
+
+// TODO First version
 /* RenderTemplate renders templates using html/template */
+/*
 func RenderTemplateTest(w http.ResponseWriter, tmpl string) {
 	parsedTemplate, _ := template.ParseFiles("./templates/"+tmpl, "./templates/base.layout.tmpl")
 	err := parsedTemplate.Execute(w, nil)
@@ -16,7 +87,11 @@ func RenderTemplateTest(w http.ResponseWriter, tmpl string) {
 		return
 	}
 }
+*/
 
+// TODO Second version
+
+/*
 var tc = make(map[string]*template.Template)
 
 func RenderTemplate(w http.ResponseWriter, t string) {
@@ -61,3 +136,4 @@ func createTemplateCache(t string) error {
 	tc[t] = tmpl
 	return nil
 }
+*/
