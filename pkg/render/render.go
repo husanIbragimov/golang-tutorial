@@ -2,41 +2,47 @@ package render
 
 import (
 	"bytes"
+	"github.com/husanibragimov/golang-tutorial/pkg/config"
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
 )
 
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
-	// get the template cache from
+var functions = template.FuncMap{}
 
-	// create a template cache
-	tc, err := CreateTemplateCache()
-	if err != nil {
-		log.Fatal(err)
+var app *config.AppConfig
+
+// NewTemplate sets the config for the template package
+func NewTemplate(a *config.AppConfig) {
+	app = a
+}
+
+func RenderTemplate(w http.ResponseWriter, tmpl string) {
+	var tc map[string]*template.Template
+
+	if app.UseCache {
+		//get the template cache from the app config
+		tc = app.TemplateCache
+	} else {
+		tc, _ = CreateTemplateCache()
 	}
-	log.Println(tc, "tc and err", err)
 
 	// get requested template from cache
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal(err)
+		log.Fatal("Could not get template from template cache")
 	}
-	log.Println(t, "t and ok", ok)
 
 	buf := new(bytes.Buffer)
-	log.Println("buffer", buf)
 
 	_ = t.Execute(buf, nil)
 
 	// render the template
-	_, err = buf.WriteTo(w)
+	_, err := buf.WriteTo(w)
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println("buf write err", err)
-
 }
 
 func CreateTemplateCache() (map[string]*template.Template, error) {
