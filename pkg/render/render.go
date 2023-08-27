@@ -9,6 +9,8 @@ import (
 )
 
 func RenderTemplate(w http.ResponseWriter, tmpl string) {
+	// get the template cache from
+
 	// create a template cache
 	tc, err := CreateTemplateCache()
 	if err != nil {
@@ -49,9 +51,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 
 	//range through all files ending with *.html
 	for _, page := range pages {
-		log.Println(page, "<- page")
 		name := filepath.Base(page)
-		log.Println("page name ->", name)
 		ts, err := template.New(name).ParseFiles(page)
 		if err != nil {
 			return myCache, err
