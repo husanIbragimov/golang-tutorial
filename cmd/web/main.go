@@ -18,6 +18,6 @@ func main() {
 	fmt.Println(fmt.Sprintf("Starting aplication on port %s", port))
 	fmt.Println("RFC1123:", time.Now().Format(time.RFC1123))
 	fmt.Println(fmt.Sprintf("Starting development server at http://localhost%s/", port))
-	fmt.Println("Quit the server with CONTROL-C.")
+	fmt.Println("Quit the server with CONTROL-C. \n")
 	_ = http.ListenAndServe(port, nil)
 }
